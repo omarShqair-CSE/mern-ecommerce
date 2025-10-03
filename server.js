@@ -9,6 +9,8 @@ app.use(cors());
 
 app.use(express.json());
 app.use("/users", require("./routes/users"));
+app.use("/books", require("./routes/books"));
+app.use("/category", require("./routes/category"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -59,4 +59,12 @@ router.post("/signin", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({ message: "User Not Found" });
+  }
+  return res.status(200).json({ user });
+});
+
 module.exports = router;
