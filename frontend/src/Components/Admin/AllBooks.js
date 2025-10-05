@@ -1,15 +1,40 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function AllBooks() {
   const [bookList, setBookList] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
-    fetch("http://localhost:5000/books/getBooks")
-      .then((res) => res.json())
-      .then((data) => setBookList(data))
-      .catch((err) => console.error("Error fetching books:", err));
-  }, []);
+    const run = async () => {
+      try {
+        // const res = await fetch("http://localhost:5000/admin/getBooks", {
+        //   method: "GET",
+        //   // credentials: "include",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //     Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9tYXJ0ZXN0QGdtYWlsLmNvbSIsImlkIjoiNjhlMjdhZTEzZDE3MWE4ZjgxYzY0MDcyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU5Njk3MzM0LCJleHAiOjE3NjAzMDIxMzR9.2Me2XG9NZLHc1jUsmYjYxb8x109EMPlhGWn8uxW-e0s"}`, // ضيف هنا الـ JWT
+        //   },
+        // });
+        const res = await fetch("http://localhost:5000/admin/getBooks", {
+          method: "GET",
+          credentials: "include", // ! important for cookies
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (res.status === 401 || res.status === 403) {
+          navigate("/", { replace: true });
+          return;
+        }
+        const data = await res.json();
+        setBookList(data);
+      } catch (error) {
+        console.log("error fetching books", error);
+        navigate("/", { replace: true });
+      }
+    };
+    run();
+  }, [navigate]);
 
   return (
     <div className="mt-10">
