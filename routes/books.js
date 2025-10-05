@@ -3,6 +3,7 @@ const router = express.Router();
 const Book = require("../models/BookSchema");
 const Category = require("../models/CategorySchema");
 const multer = require("multer");
+const { auth } = require("../auth/middleware");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -19,52 +20,60 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-router.post("/createBook", upload.single("coverImage"), async (req, res) => {
-  try {
-    const {
-      title,
-      author,
-      description,
-      price,
-      stock,
-      isFeatured,
-      category,
-      discountPercent,
-      isOnSale,
-    } = req.body;
+router.post(
+  "/createBook",
+  auth("admin"),
+  upload.single("coverImage"),
+  async (req, res) => {
+    try {
+      const {
+        title,
+        author,
+        description,
+        price,
+        stock,
+        isFeatured,
+        category,
+        discountPercent,
+        isOnSale,
+      } = req.body;
 
-    const coverImage = req.file?.filename;
+      const coverImage = req.file?.filename;
 
-    if (!title || !author || !description || !price || !stock) {
-      return res.status(400).json({ error: "All fields are required" });
+      if (!title || !author || !description || !price || !stock) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+
+      const categoryExists = await Category.findById(category);
+      if (!categoryExists) {
+        return res.status(400).json({ error: "Category not found" });
+      }
+
+      const newBook = new Book({
+        title,
+        author,
+        description,
+        price,
+        stock,
+        isFeatured,
+        category,
+        discountPercent,
+        isOnSale,
+        coverImage,
+      });
+
+      await newBook.save();
+      res
+        .status(201)
+        .json({
+          message: "Book created successfully",
+          book: newBook.toObject(),
+        });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists) {
-      return res.status(400).json({ error: "Category not found" });
-    }
-
-    const newBook = new Book({
-      title,
-      author,
-      description,
-      price,
-      stock,
-      isFeatured,
-      category,
-      discountPercent,
-      isOnSale,
-      coverImage,
-    });
-
-    await newBook.save();
-    res
-      .status(201)
-      .json({ message: "Book created successfully", book: newBook.toObject() });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
-});
+);
 
 router.get("/getBooks", async (req, res) => {
   try {
