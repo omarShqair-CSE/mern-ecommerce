@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const navLinks = [
@@ -7,6 +8,7 @@ function Navbar() {
     { name: "Contact", path: "/" },
     { name: "About", path: "/" },
   ];
+  const navigate = useNavigate();
 
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -64,18 +66,22 @@ function Navbar() {
           viewBox="0 0 24 24"
         ></svg>
 
-        <button className="rounded-full px-4 py-2 bg-[#F86D72] text-white w-24 transition-colors duration-300 hover:bg-[#dd6165]">
-          Signin
+        <button
+          onClick={() => navigate("/login")}
+          className="rounded-full px-4 py-2 bg-[#F86D72] text-white w-24 transition-colors duration-300 hover:bg-[#dd6165]"
+        >
+          Login
         </button>
 
         <button
+          onClick={() => navigate("/register")}
           className={`ml-0 md:ml-4 rounded-full px-4 py-2 transition-colors duration-300 w-24 ${
             isScrolled
               ? "bg-black text-white hover:bg-gray-800"
               : "bg-[#F86D72] text-white hover:bg-[#dd6165]"
           }`}
         >
-          Signup
+          Register
         </button>
       </div>
 
@@ -129,12 +135,18 @@ function Navbar() {
           </a>
         ))}
 
-        <button className="rounded-full px-4 py-2 bg-[#F86D72] text-white w-24 transition-colors duration-300 hover:bg-[#dd6165]">
-          Signup
+        <button
+          onClick={() => navigate("/register")}
+          className="rounded-full px-4 py-2 bg-[#F86D72] text-white w-24 transition-colors duration-300 hover:bg-[#dd6165]"
+        >
+          Register
         </button>
 
-        <button className="rounded-full px-4 py-2 bg-[#F86D72] text-white w-24 transition-colors duration-300 hover:bg-[#dd6165]">
-          Signin
+        <button
+          onClick={() => navigate("/login")}
+          className="rounded-full px-4 py-2 bg-[#F86D72] text-white w-24 transition-colors duration-300 hover:bg-[#dd6165]"
+        >
+          Login
         </button>
       </div>
     </nav>

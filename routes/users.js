@@ -5,57 +5,100 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
-  if (!email || !password || !name) {
-    return res
-      .status(400)
-      .json({ message: "Name and Email and password are required" });
+  try {
+    const { name, email, password } = req.body;
+    if (!email || !password || !name) {
+      return res
+        .status(400)
+        .json({ message: "Name and Email and password are required" });
+    }
+
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "User Already Exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: "user",
+    });
+
+    await newUser.save();
+
+    let token = jwt.sign(
+      { email, id: newUser._id, role: newUser.role },
+      process.env.SECRET_KEY,
+      {
+        expiresIn: "2w",
+      }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(201).json({
+      message: "User register successfully",
+
+      user: newUser,
+      token,
+      role: newUser.role,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
-
-  let user = await User.findOne({ email });
-  if (user) {
-    return res.status(400).json({ message: "User Already Exists" });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const newUser = new User({
-    name,
-    email,
-    password: hashedPassword,
-  });
-
-  await newUser.save();
-
-  let token = jwt.sign({ email, id: newUser._id }, process.env.SECRET_KEY, {
-    expiresIn: "2w",
-  });
-  res
-    .status(201)
-    .json({ message: "User register successfully", user: newUser, token });
 });
 
 router.post("/signin", async (req, res) => {
-  console.log("Signin route hit");
-  const { password, email } = req.body;
+  try {
+    console.log("Signin route hit");
+    const { password, email } = req.body;
 
-  if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Email  and password are required" });
-  }
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email  and password are required" });
+    }
 
-  let user = await User.findOne({ email });
-  if (user && (await bcrypt.compare(password, user.password))) {
-    let token = jwt.sign({ email, id: user._id }, process.env.SECRET_KEY, {
-      expiresIn: "1w",
-    });
+    let user = await User.findOne({ email });
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const role = user.role || "user";
+      let token = jwt.sign(
+        { email, id: user._id, role },
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "1w",
+        }
+      );
 
-    return res
-      .status(201)
-      .json({ message: "User Signin successfully", user, token });
-  } else {
-    return res.status(400).json({ message: "Invalid email or password" });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      user.password = undefined;
+
+      const redirectPath = role === "admin" ? "/admin" : "/";
+      return res.status(201).json({
+        message: "User Signin successfully",
+        user,
+        token,
+        role,
+        redirect: redirectPath,
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 

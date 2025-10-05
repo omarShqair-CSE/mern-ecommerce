@@ -5,7 +5,12 @@ const path = require("path");
 const cors = require("cors");
 const connectDB = require("./config/db");
 connectDB();
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use(express.json());
