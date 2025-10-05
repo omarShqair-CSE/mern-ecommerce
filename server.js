@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
 const dotenv = require("dotenv").config();
-
+const path = require("path");
 const cors = require("cors");
 const connectDB = require("./config/db");
 connectDB();
 app.use(cors());
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use(express.json());
 app.use("/users", require("./routes/users"));
