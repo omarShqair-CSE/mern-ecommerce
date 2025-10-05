@@ -12,7 +12,7 @@ app.use(express.json());
 app.use("/users", require("./routes/users"));
 app.use("/books", require("./routes/books"));
 app.use("/category", require("./routes/category"));
-
+app.use("images", express.static("images"));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
